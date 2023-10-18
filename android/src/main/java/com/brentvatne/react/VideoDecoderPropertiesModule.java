@@ -1,7 +1,6 @@
 package com.brentvatne.react;
 
 import android.annotation.SuppressLint;
-import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaDrm;
 import android.media.MediaFormat;
@@ -80,36 +79,18 @@ public class VideoDecoderPropertiesModule extends ReactContextBaseJavaModule {
     @SuppressLint("ObsoleteSdkInt")
     @ReactMethod
     public void isCodecSupported(String mimeType, int width, int height, Promise p) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            p.resolve("unsupported");
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP) {
+            p.resolve(false);
             return;
         }
-
         MediaCodecList mRegularCodecs = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
         MediaFormat format = MediaFormat.createVideoFormat(mimeType, width, height);
         String codecName = mRegularCodecs.findDecoderForFormat(format);
-
         if (codecName == null) {
-            p.resolve("unsupported");
-            return;
+            p.resolve(false);
+        } else {
+            p.resolve(true);
         }
-
-        // Fallback for android < 10
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            p.resolve("software");
-            return;
-        }
-
-        boolean isHardwareAccelerated = false;
-
-        for (MediaCodecInfo codecInfo : mRegularCodecs.getCodecInfos()) {
-            if (codecInfo.getName().equalsIgnoreCase(codecName)) {
-                isHardwareAccelerated = codecInfo.isHardwareAccelerated();
-                break;
-            }
-        }
-
-        p.resolve(isHardwareAccelerated ? "software" : "hardware");
     }
 
 
